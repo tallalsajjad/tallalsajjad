@@ -2,11 +2,11 @@ name: Generate Snake
 
 on:
   schedule:
-    - cron: "0 */6 * * *"   # every 6 hours; change to "0 0 * * *" for daily
+    - cron: "0 */6 * * *"   # every 6 hours (adjust if you like)
   workflow_dispatch:
 
 permissions:
-  contents: write         # needed to push the output branch
+  contents: write
 
 jobs:
   build:
@@ -26,34 +26,32 @@ jobs:
             dist/github-contribution-grid-snake.svg
             dist/github-contribution-grid-snake-dark.svg?palette=github-dark
 
-      - name: Show generated files (for debugging)
+      - name: Show generated files (debug)
         run: |
-          echo "Files in dist/:"
+          echo "=== Listing dist/ ==="
           ls -la dist || true
 
       - name: Publish dist/ to output branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # safe git user
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # create/reset orphan 'output' branch
+          # remove local branch output if exists, create orphan
           if git show-ref --verify --quiet refs/heads/output; then
             git branch -D output || true
           fi
           git checkout --orphan output
 
-          # remove all files from orphan branch, copy generated files
+          # clear, copy generated files
           git rm -rf . || true
           cp -r dist/* . || true
 
-          # commit and push
           git add -A
           if git commit -m "Publish snake [skip ci]" >/dev/null 2>&1; then
             git push -f origin HEAD:output
           else
-            echo "Nothing to commit (no generated files?)"
+            echo "Nothing to commit (check dist/ contents)"
             exit 1
           fi
