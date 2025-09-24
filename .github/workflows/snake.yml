@@ -1,8 +1,8 @@
-name: Generate Snake
+name: Generate Snake Animation
 
 on:
   schedule:
-    - cron: "0 * * * *"       # runs every hour (you can adjust)
+    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 jobs:
@@ -12,15 +12,16 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Create snake
-        uses: Platane/snk@v3
+      - name: Generate snake using extended snk
+        uses: ArthurLobopro/snk@v0.4.0
         with:
           github_user_name: ${{ github.repository_owner }}
           outputs: |
             dist/github-snake.svg
             dist/github-snake-dark.svg?palette=github-dark
+            dist/github-snake.gif?color_snake=orange&color_dots=#bfd6f6,#8dbdff,#64a1f4,#4b91f1,#3c7dd9
 
-      - name: Deploy to output branch
+      - name: Publish to output branch
         uses: crazy-max/ghaction-github-pages@v3
         with:
           target_branch: output
@@ -29,4 +30,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 Add snake animation workflow
-
