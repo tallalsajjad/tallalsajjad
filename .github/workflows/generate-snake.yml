@@ -1,57 +1,27 @@
 name: Generate Snake
 
 on:
-  schedule:
-    - cron: "0 */6 * * *"   # every 6 hours (adjust if you like)
+  schedule: # run every 24 hours
+    - cron: "0 0 * * *"
   workflow_dispatch:
-
-permissions:
-  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
-      - name: Generate snake SVGs (Platane/snk)
+      - name: Generate Snake Animation
         uses: Platane/snk@v3
-        id: gen
         with:
-          github_user_name: ${{ github.repository_owner }}
-          outputs: |
-            dist/github-contribution-grid-snake.svg
-            dist/github-contribution-grid-snake-dark.svg?palette=github-dark
+          github_user_name: tallalsajjad
+          outputs: dist/snake.svg
 
-      - name: Show generated files (debug)
-        run: |
-          echo "=== Listing dist/ ==="
-          ls -la dist || true
-
-      - name: Publish dist/ to output branch
+      - name: Push to output branch
+        uses: crazy-max/ghaction-github-pages@v4
+        with:
+          target_branch: output
+          build_dir: dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          # remove local branch output if exists, create orphan
-          if git show-ref --verify --quiet refs/heads/output; then
-            git branch -D output || true
-          fi
-          git checkout --orphan output
-
-          # clear, copy generated files
-          git rm -rf . || true
-          cp -r dist/* . || true
-
-          git add -A
-          if git commit -m "Publish snake [skip ci]" >/dev/null 2>&1; then
-            git push -f origin HEAD:output
-          else
-            echo "Nothing to commit (check dist/ contents)"
-            exit 1
-          fi
