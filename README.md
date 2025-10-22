@@ -1,4 +1,4 @@
-# 💫 About Me:
+
 Reach me: 🌀lagendland0@gamil.com
 
 <picture>
